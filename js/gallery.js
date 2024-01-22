@@ -64,46 +64,48 @@ const images = [
   },
 ];
 
+const image = images
+  .map(
+    (img) =>
+      ` <li class="gallery-item">
+        <a class="gallery-link" href="${img.original}">
+          <img
+            class="gallery-image"
+            src="${img.preview}"
+            data-source="${img.original}"
+            width="360px"
+            height="200px"
+            alt="${img.description}"
+            
+          />
+        </a>
+      </li>`
+  )
+  .join("");
 const gallery = document.querySelector(".gallery");
-let lightbox;
-gallery.addEventListener("click", (event) => {
+gallery.insertAdjacentHTML("beforeend", image);
+
+let instance;
+
+gallery.addEventListener("click", function selectImg(event) {
   event.preventDefault();
-  if (event.target.classList.contains("gallery-image")) {
-    const originalSrc = event.target.dataset.source;
-    lightbox = basicLightbox.create(
-      `<img width="1400" height="900" src="${originalSrc}">`
-    );
-    lightbox.show();
-    document.addEventListener("keydown", handleKeyDown);
+  if (event.target.tagName !== "IMG") {
+    return;
   }
+  const selectedImg = event.target.dataset.source;
+  instance = basicLightbox.create(`<img src="${selectedImg}">`, {
+    onShow: (instance) => {
+      document.addEventListener("keydown", handleKeyDown);
+    },
+    onClose: (instance) => {
+      document.removeEventListener("keydown", handleKeyDown);
+    },
+  });
+  instance.show();
 });
 
 function handleKeyDown(event) {
-  if (event.key === "Escape" || event.code === "Escape") {
-    closeLightbox();
+  if (event.key === "Escape") {
+    instance.close();
   }
 }
-
-function closeLightbox() {
-  if (lightbox && lightbox.visible()) {
-    lightbox.close();
-    document.removeEventListener("keydown", handleKeyDown);
-  }
-}
-
-const markup = images
-  .map(
-    (image) => `<li class="gallery-item">
-  <a class="gallery-link" href="${image.original}">
-    <img
-      class="gallery-image"
-      src="${image.preview}"
-      data-source="${image.original}"
-      alt="${image.description}"
-    />
-  </a>
-</li>`
-  )
-  .join("");
-
-gallery.innerHTML = markup;
