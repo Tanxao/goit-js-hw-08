@@ -1,7 +1,7 @@
 const images = [
   {
     preview:
-      "https://cdn.pixabay.com/photo/2019/05/14/16/43/rchids-4202820__340.jpg",
+      "https://cdn.pixabay.com/photo/2019/05/14/16/43/rchids-4202820__480.jpg",
     original:
       "https://cdn.pixabay.com/photo/2019/05/14/16/43/rchids-4202820_1280.jpg",
     description: "Hokkaido Flower",
@@ -63,43 +63,47 @@ const images = [
     description: "Lighthouse Coast Sea",
   },
 ];
+
 const gallery = document.querySelector(".gallery");
-
-const galleryElements = images
-  .map(
-    (el) =>
-      `<li class="gallery-item"><a class="gallery-link" href="${el.original}"><img class="gallery-image" src="${el.preview}" data-source="${el.original}" alt="${el.description}" width ="360" height ="200"></a></li>`
-  )
-  .join("");
-
-gallery.insertAdjacentHTML("beforeend", galleryElements);
-
-let instance = null;
-
+let lightbox;
 gallery.addEventListener("click", (event) => {
   event.preventDefault();
-  const target = event.target;
-  if (target.nodeName === "IMG") {
-    const originalUrl = target.dataset.source;
-    console.log(originalUrl);
-    instance = basicLightbox.create(
-      `
-    <img src="${originalUrl}">`,
-      {
-        onShow: () => {
-          document.addEventListener("keydown", handleKeyPress);
-        },
-        onClose: () => {
-          document.removeEventListener("keydown", handleKeyPress);
-        },
-      }
+  if (event.target.classList.contains("gallery-image")) {
+    const originalSrc = event.target.dataset.source;
+    lightbox = basicLightbox.create(
+      `<img width="1400" height="900" src="${originalSrc}">`
     );
-    instance.show();
+    lightbox.show();
+    document.addEventListener("keydown", handleKeyDown);
   }
 });
 
-function handleKeyPress(event) {
-  if (event.key === "Escape" && instance !== null) {
-    instance.close();
+function handleKeyDown(event) {
+  if (event.key === "Escape" || event.code === "Escape") {
+    closeLightbox();
   }
 }
+
+function closeLightbox() {
+  if (lightbox && lightbox.visible()) {
+    lightbox.close();
+    document.removeEventListener("keydown", handleKeyDown);
+  }
+}
+
+const markup = images
+  .map(
+    (image) => `<li class="gallery-item">
+  <a class="gallery-link" href="${image.original}">
+    <img
+      class="gallery-image"
+      src="${image.preview}"
+      data-source="${image.original}"
+      alt="${image.description}"
+    />
+  </a>
+</li>`
+  )
+  .join("");
+
+gallery.innerHTML = markup;
